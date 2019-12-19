@@ -13,4 +13,9 @@
   </a>
 </p>
 
+Create a Station
 
+```julia
+using OceanographyCruises
+st = Station(name="ALOHA", lat=22.75, lon=-158)
+```
