@@ -54,9 +54,9 @@ julia> depths = [10, 50, 100, 200, 300, 400, 500, 700, 1000, 2000, 3000, 5000] ;
 
 julia> idepths = [rand(Bool, length(depths)) for i in 1:N] ;
 
-julia> profiles = [DepthProfile(station=stations[i], depths=depths[idepths[i]], data=rand(12)[idepths[i]]) for i in 1:N] ;
+julia> profiles = [DepthProfile(station=stations[i], depths=depths[idepths[i]], values=rand(12)[idepths[i]]) for i in 1:N] ;
 
-julia> t = Transect(tracer="PO₄", cruise=ct.name, data=profiles)
+julia> t = Transect(tracer="PO₄", cruise=ct.name, profiles=profiles)
 Transect of PO₄
 Cruise TestCruiseTrack
 ┌─────────┬──────┬──────┬──────┐
@@ -75,7 +75,7 @@ Cruise TestCruiseTrack
 └─────────┴──────┴──────┴──────┘
 
 
-julia> t.data[3]
+julia> t.profiles[3]
 Depth profile at Station 3 (3.0N, 6.0E)
 ┌────────┬────────────────────┐
 │  Depth │              Value │
