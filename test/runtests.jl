@@ -30,27 +30,27 @@ end
 end
 
 @testset "DepthProfile" begin
-    data = rand(length(depths))
-    p = DepthProfile(station=st, depths=depths, data=data)
+    values = rand(length(depths))
+    p = DepthProfile(station=st, depths=depths, values=values)
     println("profile without units:")
     show(stdout, MIME("text/plain"), p)
-    p = DepthProfile(station=st, depths=depths, data=data * u"nM")
+    p = DepthProfile(station=st, depths=depths, values=values * u"nM")
     println("profile with units:")
     show(stdout, MIME("text/plain"), p)
     @test p isa DepthProfile
     @test p.station == st
-    @test p.data == data * u"nM"
+    @test p.values == values * u"nM"
     @test p.depths == depths
 end
 
 @testset "Transect" begin
     idepths = [rand(Bool, length(depths)) for i in 1:N]
-    profiles = [DepthProfile(station=stations[i], depths=depths[idepths[i]], data=rand(12)[idepths[i]]) for i in 1:N]
-    t = Transect(tracer="PO₄", cruise=ct.name, data=profiles)
+    profiles = [DepthProfile(station=stations[i], depths=depths[idepths[i]], values=rand(12)[idepths[i]]) for i in 1:N]
+    t = Transect(tracer="PO₄", cruise=ct.name, profiles=profiles)
     println("Transect example:")
     show(stdout, MIME("text/plain"), t)
     @test t isa Transect
     @test t.tracer == "PO₄"
     @test t.cruise == "TestCruiseTrack"
-    @test t.data == profiles
+    @test t.profiles == profiles
 end
