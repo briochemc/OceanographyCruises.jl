@@ -52,6 +52,8 @@ function Base.show(io::IO, ::MIME"text/plain", ct::CruiseTrack)
         pretty_table(pretty_data(ct), ["Station", "Date", "Lat", "Lon"])
     end
 end
+latitudes(ct::CruiseTrack) = [st.lat for st in ct.stations]
+longitudes(ct::CruiseTrack) = [st.lon for st in ct.stations]
 
 """
     DepthProfile
@@ -61,13 +63,13 @@ A depth profile at a given station.
 @default_kw struct DepthProfile{V}
     station::Station        | Station()
     depths::Vector{Float64} | Float64[]
-    data::Vector{V}         | Float64[]
-    DepthProfile(st,d,v::Vector{V}) where {V} = (length(d) ≠ length(v)) ? error("`depths` and `data` must have same length") : new{V}(st,d,v)
+    values::Vector{V}         | Float64[]
+    DepthProfile(st,d,v::Vector{V}) where {V} = (length(d) ≠ length(v)) ? error("`depths` and `values` must have same length") : new{V}(st,d,v)
 end
 Base.length(p::DepthProfile) = length(p.depths)
 Base.isempty(p::DepthProfile) = isempty(p.depths)
-pretty_data(p::DepthProfile) = [p.depths p.data]
-pretty_data(p::DepthProfile{V}) where {V <: Quantity} = [p.depths ustrip.(p.data)]
+pretty_data(p::DepthProfile) = [p.depths p.values]
+pretty_data(p::DepthProfile{V}) where {V <: Quantity} = [p.depths ustrip.(p.values)]
 function Base.show(io::IO, m::MIME"text/plain", p::DepthProfile)
     if isempty(p)
         println("Empty profile at ", string(p.station))
@@ -91,17 +93,60 @@ end
 A transect of depth profiles for a given tracer.
 """
 @default_kw struct Transect{V}
-    tracer::String                | ""
-    cruise::String                | ""
-    data::Vector{DepthProfile{V}} | DepthProfile{Float64}[]
+    tracer::String                    | ""
+    cruise::String                    | ""
+    profiles::Vector{DepthProfile{V}} | DepthProfile{Float64}[]
 end
-Base.length(t::Transect) = length(t.data)
+Base.length(t::Transect) = length(t.profiles)
 function Base.show(io::IO, m::MIME"text/plain", t::Transect)
-    println("Transect of $(t.tracer)")
-    show(io, m, CruiseTrack(stations=[p.station for p in t.data], name=t.cruise))
+    if isempty(t)
+        println("Empty transect")
+    else
+        println("Transect of $(t.tracer)")
+        show(io, m, CruiseTrack(t))
+    end
+end
+CruiseTrack(t::Transect) = CruiseTrack(stations=[p.station for p in t.profiles], name=t.cruise)
+Base.isempty(t::Transect) = isempty(t.profiles)
+
+
+"""
+    Transects
+
+A collection of transects for a given tracer.
+"""
+@default_kw struct Transects{V}
+    tracer::String                 | ""
+    cruises::Vector{String}        | ""
+    transects::Vector{Transect{V}} | Transect{Float64}[]
+end
+function Base.show(io::IO, m::MIME"text/plain", ts::Transects)
+    println("Transects of $(ts.tracer)")
+    print("(Cruises ")
+    [print("$c, ") for c in ts.cruises[1:end-1]]
+    println("and $(last(ts.cruises)).)")
 end
 
 
-export CruiseTrack, Station, DepthProfile, Transect
+
+function Base.range(departure::Station, arrival::Station; length::Int64, westmostlon=-180)
+    lonstart = lonconvert(departure.lon, westmostlon)
+    lonend = lonconvert(arrival.lon, westmostlon)
+    lonstart - lonend >  180 && (lonend += 360)
+    lonstart - lonend < -180 && (lonstart += 360)
+    lats = range(departure.lat, arrival.lat, length=length)
+    lons = range(lonstart, lonend, length=length)
+    names = string.("$(departure.name) to $(arrival.name) ", 1:length)
+    return [Station(lat=x[1], lon=lonconvert(x[2], westmostlon), name=x[3]) for x in zip(lats, lons, names)]
+end
+
+lonconvert(lon, westmostlon=-180) = mod(lon - westmostlon, 360) + westmostlon
+
+export CruiseTrack, Station, DepthProfile, Transect, Transects
+export latitudes, longitudes
+
+Unitful.unit(t::Transect) = unit(t.profiles[1].values[1])
+Base.maximum(t::Transect) = maximum(maximum(ustrip.(pro.values)) for pro in t.profiles)
+Base.minimum(t::Transect) = minimum(minimum(ustrip.(pro.values)) for pro in t.profiles)
 
 end # module

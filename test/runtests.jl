@@ -20,6 +20,8 @@ end
     show(stdout, MIME("text/plain"), ct)
     @test ct isa CruiseTrack
     @test ct.name == "TestCruiseTrack"
+    @test latitudes(ct) == collect(1:N)
+    @test longitudes(ct) == 2collect(1:N)
     @testset "lon/lat" for i in 1:N 
         st = ct.stations[i]
         @test st.lon == 2i
