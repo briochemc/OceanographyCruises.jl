@@ -4,7 +4,7 @@
 
 <p>
   <a href="https://travis-ci.com/briochemc/OceanographyCruises.jl">
-    <img src="https://img.shields.io/travis/com/briochemc/OceanographyCruises.jl/master?label=OSX/Linux/Windows&logo=travis&logoColor=white">
+    <img src="https://img.shields.io/travis/com/briochemc/OceanographyCruises.jl/master?label=OSX/Linux/Windows&logo=travis&logoColor=white&style=flat-square">
   </a>
 </p>
 <p>
