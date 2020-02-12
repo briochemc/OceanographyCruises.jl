@@ -23,12 +23,12 @@ Base.show(io::IO, m::MIME"text/plain", st::Station) = println(io, string(st))
 Base.show(io::IO, st::Station) = println(io, string(st))
 function Base.string(st::Station)
     name = st.name == "" ? "Unnamed station " : "Station $(st.name) "
-    date = st.date == Date(0) ? "" : "$st.date "
+    date = st.date == Date(0) ? "" : "$(st.date) "
     return string(name, date, "($(latstring(st.lat)), $(lonstring(st.lon)))")
 end
 latstring(lat) = string(round(abs(lat)*10)/10, lat < 0 ? "S" : "N")
 lonstring(lon) = string(round(abs(lon)*10)/10, lon < 0 ? "W" : "E")
-    
+
 
 """
     CruiseTrack
@@ -63,7 +63,7 @@ A depth profile at a given station.
 @default_kw struct DepthProfile{V}
     station::Station        | Station()
     depths::Vector{Float64} | Float64[]
-    values::Vector{V}         | Float64[]
+    values::Vector{V}       | Float64[]
     DepthProfile(st,d,v::Vector{V}) where {V} = (length(d) ≠ length(v)) ? error("`depths` and `values` must have same length") : new{V}(st,d,v)
 end
 Base.length(p::DepthProfile) = length(p.depths)
@@ -86,6 +86,9 @@ function Base.show(io::IO, m::MIME"text/plain", p::DepthProfile{V}) where {V <: 
         pretty_table(pretty_data(p), ["Depth", "Value [$(unit(V))]"])
     end
 end
+Base.:*(pro::DepthProfile, q::Quantity) = DepthProfile(pro.station, pro.depths, pro.values .* q)
+Unitful.uconvert(u, pro::DepthProfile) = DepthProfile(pro.station, pro.depths, uconvert.(u, pro.values))
+
 
 """
     Transect
@@ -108,6 +111,8 @@ function Base.show(io::IO, m::MIME"text/plain", t::Transect)
 end
 CruiseTrack(t::Transect) = CruiseTrack(stations=[p.station for p in t.profiles], name=t.cruise)
 Base.isempty(t::Transect) = isempty(t.profiles)
+Base.:*(t::Transect, q::Quantity) = Transect(t.tracer, t.cruise, t.profiles .* q)
+Unitful.uconvert(u, t::Transect) = Transect(t.tracer, t.cruise, uconvert.(u, t.profiles))
 
 
 """
@@ -126,7 +131,8 @@ function Base.show(io::IO, m::MIME"text/plain", ts::Transects)
     [print("$c, ") for c in ts.cruises[1:end-1]]
     println("and $(last(ts.cruises)).)")
 end
-
+Base.:*(ts::Transects, q::Quantity) = Transects(ts.tracer, ts.cruises, ts.transects .* q)
+Unitful.uconvert(u, ts::Transects) = Transects(ts.tracer, ts.cruises, uconvert.(u, ts.transects ))
 
 
 function Base.range(departure::Station, arrival::Station; length::Int64, westmostlon=-180)
