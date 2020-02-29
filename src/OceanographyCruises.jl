@@ -28,7 +28,9 @@ function Base.string(st::Station)
 end
 latstring(lat) = string(round(abs(lat)*10)/10, lat < 0 ? "S" : "N")
 lonstring(lon) = string(round(abs(lon)*10)/10, lon < 0 ? "W" : "E")
-
+# shift longitude for cruises that cross 0 to (-180,180)
+shiftlon(lon; baselon=0) = mod(lon - baselon, 360) + baselon
+shiftlon(st::Station; baselon=0) = Station(st.lat, shiftlon(st.lon, baselon=baselon), st.name, st.date)
 
 """
     CruiseTrack
@@ -54,6 +56,16 @@ function Base.show(io::IO, ::MIME"text/plain", ct::CruiseTrack)
 end
 latitudes(ct::CruiseTrack) = [st.lat for st in ct.stations]
 longitudes(ct::CruiseTrack) = [st.lon for st in ct.stations]
+# shift longitude for cruises that cross 0 to (-180,180)
+shiftlon(ct::CruiseTrack; baselon=0) = CruiseTrack(ct.name, shiftlon.(ct.stations, baselon=baselon))
+function autoshift(ct::CruiseTrack)
+    if any([0 ≤ st.lon < 90 for st in ct.stations]) && any([270 ≤ st.lon < 360 for st in ct.stations])
+        shiftlon(ct, baselon=-180)
+    else
+        ct
+    end
+end
+
 
 """
     DepthProfile
@@ -88,6 +100,8 @@ function Base.show(io::IO, m::MIME"text/plain", p::DepthProfile{V}) where {V <: 
 end
 Base.:*(pro::DepthProfile, q::Quantity) = DepthProfile(pro.station, pro.depths, pro.values .* q)
 Unitful.uconvert(u, pro::DepthProfile) = DepthProfile(pro.station, pro.depths, uconvert.(u, pro.values))
+# shift longitude for cruises that cross 0 to (-180,180)
+shiftlon(pro::DepthProfile; baselon=0) = DepthProfile(shiftlon(pro.station, baselon=baselon), pro.depths, pro.values)
 
 
 """
@@ -113,6 +127,15 @@ CruiseTrack(t::Transect) = CruiseTrack(stations=[p.station for p in t.profiles],
 Base.isempty(t::Transect) = isempty(t.profiles)
 Base.:*(t::Transect, q::Quantity) = Transect(t.tracer, t.cruise, t.profiles .* q)
 Unitful.uconvert(u, t::Transect) = Transect(t.tracer, t.cruise, uconvert.(u, t.profiles))
+# shift longitude for cruises that cross 0 to (-180,180)
+shiftlon(t::Transect; baselon=0) = Transect(t.tracer, t.cruise, shiftlon.(t.profiles, baselon=baselon))
+function autoshift(t::Transect)
+    if any([0 ≤ pro.station.lon < 90 for pro in t.profiles]) && any([270 ≤ pro.station.lon < 360 for pro in t.profiles])
+        shiftlon(t, baselon=-180)
+    else
+        t
+    end
+end
 
 
 """
@@ -133,6 +156,11 @@ function Base.show(io::IO, m::MIME"text/plain", ts::Transects)
 end
 Base.:*(ts::Transects, q::Quantity) = Transects(ts.tracer, ts.cruises, ts.transects .* q)
 Unitful.uconvert(u, ts::Transects) = Transects(ts.tracer, ts.cruises, uconvert.(u, ts.transects ))
+# shift longitude for cruises that cross 0 to (-180,180)
+shiftlon(ts::Transects; baselon=0) = Transects(ts.tracer, ts.cruises, shiftlon.(t.transects, baselon=baselon))
+autoshift(ts::Transects) = Transects(ts.tracer, ts.cruises, autoshift.(ts.transects))
+
+
 
 
 function Base.range(departure::Station, arrival::Station; length::Int64, westmostlon=-180)
