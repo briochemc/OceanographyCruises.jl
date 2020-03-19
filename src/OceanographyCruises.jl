@@ -4,6 +4,7 @@ using StaticArrays, Dates
 using FieldMetadata, FieldDefaults
 using PrettyTables
 using Unitful
+using Distances, TravelingSalesmanHeuristics
 
 """
     Station
@@ -99,6 +100,7 @@ function Base.show(io::IO, m::MIME"text/plain", p::DepthProfile{V}) where {V <: 
     end
 end
 Base.:*(pro::DepthProfile, q::Quantity) = DepthProfile(pro.station, pro.depths, pro.values .* q)
+Base.:-(pro1::DepthProfile, pro2::DepthProfile) = DepthProfile(pro1.station, pro1.depths, pro1.values .- pro2.values)
 Unitful.uconvert(u, pro::DepthProfile) = DepthProfile(pro.station, pro.depths, uconvert.(u, pro.values))
 # shift longitude for cruises that cross 0 to (-180,180)
 shiftlon(pro::DepthProfile; baselon=0) = DepthProfile(shiftlon(pro.station, baselon=baselon), pro.depths, pro.values)
@@ -126,6 +128,7 @@ end
 CruiseTrack(t::Transect) = CruiseTrack(stations=[p.station for p in t.profiles], name=t.cruise)
 Base.isempty(t::Transect) = isempty(t.profiles)
 Base.:*(t::Transect, q::Quantity) = Transect(t.tracer, t.cruise, t.profiles .* q)
+Base.:-(t1::Transect, t2::Transect) = Transect("$(t1.tracer)˟", t1.cruise, t1.profiles .- t2.profiles)
 Unitful.uconvert(u, t::Transect) = Transect(t.tracer, t.cruise, uconvert.(u, t.profiles))
 # shift longitude for cruises that cross 0 to (-180,180)
 shiftlon(t::Transect; baselon=0) = Transect(t.tracer, t.cruise, shiftlon.(t.profiles, baselon=baselon))
@@ -136,6 +139,8 @@ function autoshift(t::Transect)
         t
     end
 end
+latitudes(t::Transect) = [pro.station.lat for pro in t.profiles]
+longitudes(t::Transect) = [pro.station.lon for pro in t.profiles]
 
 
 """
@@ -155,12 +160,55 @@ function Base.show(io::IO, m::MIME"text/plain", ts::Transects)
     println("and $(last(ts.cruises)).)")
 end
 Base.:*(ts::Transects, q::Quantity) = Transects(ts.tracer, ts.cruises, ts.transects .* q)
+Base.:*(q::Quantity, ts::Transects) = ts * q
+Base.:-(ts1::Transects, ts2::Transects) = Transects("$(ts1.tracer)˟", ts1.cruises, ts1.transects .- ts2.transects)
 Unitful.uconvert(u, ts::Transects) = Transects(ts.tracer, ts.cruises, uconvert.(u, ts.transects ))
 # shift longitude for cruises that cross 0 to (-180,180)
 shiftlon(ts::Transects; baselon=0) = Transects(ts.tracer, ts.cruises, shiftlon.(t.transects, baselon=baselon))
 autoshift(ts::Transects) = Transects(ts.tracer, ts.cruises, autoshift.(ts.transects))
 
 
+"""
+    sort(t::Transect)
+
+Sorts the transect using a travelling salesman problem heuristic.
+"""
+Base.sort(t::Transect; start=:south) = Transect(t.cruise, t.tracer, [t for t in t.profiles[sortperm(t; start=start)]])
+Base.sort(ct::CruiseTrack; start=:south) = CruiseTrack(name=ct.name, stations=ct.stations[sortperm(ct; start=start)])
+function Base.sortperm(t::Union{CruiseTrack, Transect}; start=:south)
+    t = autoshift(t)
+    n = length(t)
+    lats = latitudes(t)
+    lons = longitudes(t)
+    pts = [lons lats]
+    dist_mat = zeros(n+1, n+1)
+    dist_mat[1:n,1:n] .= pairwise(Haversine(1), pts, dims=1)
+    path, cost = solve_tsp(dist_mat; quality_factor = 5)
+    i = findall(path .== n+1)
+    if length(i) == 1
+        path = vcat(path[i[1]+1:end], path[1:i[1]-1])
+    else
+        path = path[2:end-1]
+    end
+    start == :south && pts[path[1],2] > pts[path[end],2] && reverse!(path)
+    start == :west  && pts[path[1],1] > pts[path[end],1] && reverse!(path)
+    return path
+end
+
+"""
+    diff(t)
+
+Computes the distance in km of each segment of the transect
+"""
+function Base.diff(t::Union{CruiseTrack,Transect})
+    t = autoshift(t)
+    n = length(t)
+    lats = latitudes(t)
+    lons = longitudes(t)
+    pts = [lons lats]
+    return [Haversine(6371.0)(pts[i,:], pts[i+1,:]) for i in 1:n-1] * u"km"
+end
+export diff
 
 
 function Base.range(departure::Station, arrival::Station; length::Int64, westmostlon=-180)
@@ -177,10 +225,24 @@ end
 lonconvert(lon, westmostlon=-180) = mod(lon - westmostlon, 360) + westmostlon
 
 export CruiseTrack, Station, DepthProfile, Transect, Transects
-export latitudes, longitudes
+export latitudes, longitudes, sort
 
 Unitful.unit(t::Transect) = unit(t.profiles[1].values[1])
-Base.maximum(t::Transect) = maximum(maximum(ustrip.(pro.values)) for pro in t.profiles)
-Base.minimum(t::Transect) = minimum(minimum(ustrip.(pro.values)) for pro in t.profiles)
+
+# nested functions
+for f in (:maximum, :minimum)
+    @eval begin
+        import Base: $f
+        """
+            $($f)(t)
+
+        Applies `$($f)` recursively.
+        """
+        $f(ts::Transects) = $f($f(t) for t in ts.transects)
+        $f(t::Transect) = $f($f(pro) for pro in t.profiles)
+        $f(pro::DepthProfile) = $f($f(v) for v in pro.values)
+        export $f
+    end
+end
 
 end # module
