@@ -168,14 +168,15 @@ shiftlon(ts::Transects; baselon=0) = Transects(ts.tracer, ts.cruises, shiftlon.(
 autoshift(ts::Transects) = Transects(ts.tracer, ts.cruises, autoshift.(ts.transects))
 
 
+import Base: sort, sortperm
 """
     sort(t::Transect)
 
 Sorts the transect using a travelling salesman problem heuristic.
 """
-Base.sort(t::Transect; start=:south) = Transect(t.cruise, t.tracer, [t for t in t.profiles[sortperm(t; start=start)]])
-Base.sort(ct::CruiseTrack; start=:south) = CruiseTrack(name=ct.name, stations=ct.stations[sortperm(ct; start=start)])
-function Base.sortperm(t::Union{CruiseTrack, Transect}; start=:south)
+sort(t::Transect; start=:south) = Transect(t.cruise, t.tracer, [t for t in t.profiles[sortperm(t; start=start)]])
+sort(ct::CruiseTrack; start=:south) = CruiseTrack(name=ct.name, stations=ct.stations[sortperm(ct; start=start)])
+function sortperm(t::Union{CruiseTrack, Transect}; start=:south)
     t = autoshift(t)
     n = length(t)
     lats = latitudes(t)
@@ -194,6 +195,7 @@ function Base.sortperm(t::Union{CruiseTrack, Transect}; start=:south)
     start == :west  && pts[path[1],1] > pts[path[end],1] && reverse!(path)
     return path
 end
+export sort, sortperm
 
 """
     diff(t)
@@ -225,7 +227,7 @@ end
 lonconvert(lon, westmostlon=-180) = mod(lon - westmostlon, 360) + westmostlon
 
 export CruiseTrack, Station, DepthProfile, Transect, Transects
-export latitudes, longitudes, sort
+export latitudes, longitudes
 
 Unitful.unit(t::Transect) = unit(t.profiles[1].values[1])
 
