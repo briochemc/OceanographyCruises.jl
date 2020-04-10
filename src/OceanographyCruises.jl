@@ -150,7 +150,7 @@ A collection of transects for a given tracer.
 """
 @default_kw struct Transects{V}
     tracer::String                 | ""
-    cruises::Vector{String}        | ""
+    cruises::Vector{String}        | String[]
     transects::Vector{Transect{V}} | Transect{Float64}[]
 end
 function Base.show(io::IO, m::MIME"text/plain", ts::Transects)
@@ -174,7 +174,7 @@ import Base: sort, sortperm
 
 Sorts the transect using a travelling salesman problem heuristic.
 """
-sort(t::Transect; start=:south) = Transect(t.cruise, t.tracer, [t for t in t.profiles[sortperm(t; start=start)]])
+sort(t::Transect; start=:south) = Transect(t.tracer, t.cruise, [t for t in t.profiles[sortperm(t; start=start)]])
 sort(ct::CruiseTrack; start=:south) = CruiseTrack(name=ct.name, stations=ct.stations[sortperm(ct; start=start)])
 function sortperm(t::Union{CruiseTrack, Transect}; start=:south)
     t = autoshift(t)
