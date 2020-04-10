@@ -3,13 +3,17 @@
 *An interface for dealing with oceanographic cruises data*
 
 <p>
-  <a href="https://travis-ci.com/briochemc/OceanographyCruises.jl">
-    <img src="https://img.shields.io/travis/com/briochemc/OceanographyCruises.jl/master?label=OSX/Linux/Windows&logo=travis&logoColor=white&style=flat-square">
+  <a href="https://github.com/briochemc/OceanographyCruises.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/briochemc/OceanographyCruises.jl/Mac%20OS%20X?label=OSX&logo=Apple&logoColor=white&style=flat-square">
   </a>
-</p>
-<p>
-  <a href='https://coveralls.io/github/briochemc/OceanographyCruises.jl'>
-    <img src="https://img.shields.io/coveralls/github/briochemc/OceanographyCruises.jl/master?label=Coverage&logo=coveralls&logoColor=white&style=flat-square">
+  <a href="https://github.com/briochemc/OceanographyCruises.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/briochemc/OceanographyCruises.jl/Linux?label=Linux&logo=Linux&logoColor=white&style=flat-square">
+  </a>
+  <a href="https://github.com/briochemc/OceanographyCruises.jl/actions">
+    <img src="https://img.shields.io/github/workflow/status/briochemc/OceanographyCruises.jl/Windows?label=Windows&logo=Windows&logoColor=white&style=flat-square">
+  </a>
+  <a href="https://codecov.io/gh/briochemc/OceanographyCruises.jl">
+    <img src="https://img.shields.io/codecov/c/github/briochemc/OceanographyCruises.jl/master?label=Codecov&logo=codecov&logoColor=white&style=flat-square">
   </a>
 </p>
 
