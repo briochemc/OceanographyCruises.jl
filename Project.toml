@@ -1,6 +1,6 @@
 name = "OceanographyCruises"
 uuid = "32ce50af-5875-4c4d-b676-f166988c519c"
-authors = ["Benoit Pasquier <pasquieb@uci.edu>"]
+authors = ["Benoit Pasquier <briochemc@gmail.com>"]
 version = "0.1.5"
 
 [deps]
