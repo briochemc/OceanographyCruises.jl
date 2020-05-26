@@ -184,11 +184,12 @@ function sortperm(t::Union{CruiseTrack, Transect}; start=:south)
     pts = [lons lats]
     dist_mat = zeros(n+1, n+1)
     dist_mat[1:n,1:n] .= pairwise(Haversine(1), pts, dims=1)
-    path, cost = solve_tsp(dist_mat; quality_factor = 5)
+    path, cost = solve_tsp(dist_mat)
     i = findall(path .== n+1)
     if length(i) == 1
-        path = vcat(path[i[1]+1:end], path[1:i[1]-1])
+        path = vcat(path[i[1]+1:end-1], path[1:i[1]-1])
     else
+        println(t.name)
         path = path[2:end-1]
     end
     start == :south && pts[path[1],2] > pts[path[end],2] && reverse!(path)
