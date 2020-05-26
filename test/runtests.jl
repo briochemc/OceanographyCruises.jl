@@ -54,3 +54,4 @@ end
     @test t.cruise == "TestCruiseTrack"
     @test t.profiles == profiles
 end
+
