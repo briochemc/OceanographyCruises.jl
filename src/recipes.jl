@@ -38,7 +38,7 @@ end
 Plots the cruise track of `t` in (lat,lon) space.
 """
 @userplot PlotCruiseTrack
-@recipe function f(p::CruiseTrackPlots, central_longitude=200°)
+@recipe function f(p::PlotCruiseTrack, central_longitude=200°)
     wlon = central_longitude - 180°
     ct, = p.args
     ctlon, ctlat = [s.lon for s in ct.stations]°, [s.lat for s in ct.stations]°
