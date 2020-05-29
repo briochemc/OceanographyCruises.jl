@@ -5,6 +5,7 @@ using FieldMetadata, FieldDefaults
 using PrettyTables
 using Unitful
 using Distances, TravelingSalesmanHeuristics
+using RecipesBase
 
 """
     Station
@@ -189,7 +190,6 @@ function sortperm(t::Union{CruiseTrack, Transect}; start=:south)
     if length(i) == 1
         path = vcat(path[i[1]+1:end-1], path[1:i[1]-1])
     else
-        println(t.name)
         path = path[2:end-1]
     end
     start == :south && pts[path[1],2] > pts[path[end],2] && reverse!(path)
@@ -204,7 +204,7 @@ export sort, sortperm
 Computes the distance in km of each segment of the transect
 """
 function Base.diff(t::Union{CruiseTrack,Transect})
-    t = autoshift(t)
+    t = autoshift(t) # not sure this is needed since Haversine takes lat and lon?
     n = length(t)
     lats = latitudes(t)
     lons = longitudes(t)
@@ -247,5 +247,8 @@ for f in (:maximum, :minimum)
         export $f
     end
 end
+
+# recipe TODO split this file into a few different ones that make sens and include them all here
+include("recipes.jl")
 
 end # module
