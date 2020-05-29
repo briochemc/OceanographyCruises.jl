@@ -1,4 +1,4 @@
-using Test, OceanographyCruises, Unitful
+using Test, OceanographyCruises, Unitful, Plots
 
 st = Station(name="ALOHA", lat=22.75, lon=-158)
 N = 10
@@ -27,6 +27,7 @@ end
         @test st.lon == 2i
         @test st.lat == i
     end
+    @test plotcruisetrack(ct) isa Plots.Plot
 end
 
 @testset "DepthProfile" begin
@@ -53,5 +54,6 @@ end
     @test t.tracer == "PO₄"
     @test t.cruise == "TestCruiseTrack"
     @test t.profiles == profiles
+    @test plotscattertransect(t) isa Plots.Plot
 end
 

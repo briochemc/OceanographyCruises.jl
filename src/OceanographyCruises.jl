@@ -4,6 +4,7 @@ using StaticArrays, Dates
 using FieldMetadata, FieldDefaults
 using PrettyTables
 using Unitful
+using Unitful: °
 using Distances, TravelingSalesmanHeuristics
 using RecipesBase
 
