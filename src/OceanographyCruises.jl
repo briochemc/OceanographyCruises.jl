@@ -6,7 +6,7 @@ using PrettyTables
 using Unitful
 using Unitful: °
 using Distances, TravelingSalesmanHeuristics
-using RecipesBase
+using RecipesBase, UnitfulRecipes
 
 """
     Station

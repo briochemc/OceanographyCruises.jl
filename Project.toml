@@ -13,6 +13,7 @@ RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 TravelingSalesmanHeuristics = "8c8f4381-2cdd-507c-846c-be2bcff6f45f"
 Unitful = "1986cc42-f94f-5a68-af5c-568840ba703d"
+UnitfulRecipes = "42071c24-d89e-48dd-8a24-8a12d9b8861f"
 
 [compat]
 Distances = "0.9"
@@ -23,6 +24,7 @@ RecipesBase = "1"
 StaticArrays = "0.12"
 TravelingSalesmanHeuristics = "0.3"
 Unitful = "1"
+UnitfulRecipes = "0.2"
 julia = "1"
 
 [extras]
