@@ -13,23 +13,26 @@ Plots a scatter of the discrete obs of `t` in (lat,depth) space.
 @userplot PlotScatterTransect
 @recipe function f(p::PlotScatterTransect)
     transect, = p.args
-    depths = reduce(vcat, pro.depths for pro in transect.profiles)
-    values = reduce(vcat, pro.values for pro in transect.profiles)
-    lats = reduce(vcat, pro.station.lat * ones(length(pro)) for pro in transect.profiles)
-    station_distances = diff(transect)
-    distances = reduce(vcat, [fill(d, length(pro)) for (d,pro) in zip(vcat(0.0u"km", cumsum(diff(transect))), transect.profiles)])
+    x, y, v = scattertransect(transect)
     @series begin
         seriestype := :scatter
         yflip := true
-        marker_z --> values
+        marker_z --> v
         markershape --> :circle
         clims --> (0, 1) .* maximum(transect)
         label --> ""
         yguide --> "Depth"
         xguide --> "Distance"
-        distances, convertdepth.(depths)
+        x, y
     end
 end
+function scattertransect(t::Transect)
+    depths = reduce(vcat, pro.depths for pro in t.profiles)
+    values = reduce(vcat, pro.values for pro in t.profiles)
+    distances = reduce(vcat, [fill(d, length(pro)) for (d,pro) in zip(vcat(0.0u"km", cumsum(diff(t))), t.profiles)])
+    return distances, convertdepth.(depths), values
+end
+export scattertransect
 
 
 """
@@ -43,10 +46,11 @@ Plots the cruise track of `t` in (lat,lon) space.
     ct, = p.args
     ctlon, ctlat = [s.lon for s in ct.stations]°, [s.lat for s in ct.stations]°
     @series begin
+        label := ""
         xguide --> ""
         yguide --> ""
         markershape --> :circle
-        markersize --> 2
+        markersize --> 4
         color_palette --> :tab10
         markercolor --> 4
         markerstrokewidth --> 0
@@ -62,7 +66,8 @@ Plots the cruise track of `t` in (lat,lon) space.
         markersize --> 1
         markercolor --> :black
         titlefontsize --> 10
+        linewidth --> 2
         mod.(ctlon .- wlon, 360°) .+ wlon, ctlat
-    end 
+    end
 end
 

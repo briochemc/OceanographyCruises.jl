@@ -170,7 +170,8 @@ shiftlon(ts::Transects; baselon=0) = Transects(ts.tracer, ts.cruises, shiftlon.(
 autoshift(ts::Transects) = Transects(ts.tracer, ts.cruises, autoshift.(ts.transects))
 
 
-import Base: sort, sortperm
+import Base: sort, sortperm, getindex
+getindex(ts::Transects, i::Int) = ts.transects[i]
 """
     sort(t::Transect)
 
@@ -197,7 +198,7 @@ function sortperm(t::Union{CruiseTrack, Transect}; start=:south)
     start == :west  && pts[path[1],1] > pts[path[end],1] && reverse!(path)
     return path
 end
-export sort, sortperm
+export sort, sortperm, getindex
 
 """
     diff(t)
