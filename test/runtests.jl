@@ -55,5 +55,6 @@ end
     @test t.cruise == "TestCruiseTrack"
     @test t.profiles == profiles
     @test plotscattertransect(t) isa Plots.Plot
+    @test sort(t) isa Transect
 end
 
