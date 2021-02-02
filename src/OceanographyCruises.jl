@@ -177,9 +177,9 @@ getindex(ts::Transects, i::Int) = ts.transects[i]
 
 Sorts the transect using a travelling salesman problem heuristic.
 """
-sort(t::Transect; start=:south) = Transect(t.tracer, t.cruise, [t for t in t.profiles[sortperm(t; start=start)]])
-sort(ct::CruiseTrack; start=:south) = CruiseTrack(name=ct.name, stations=ct.stations[sortperm(ct; start=start)])
-function sortperm(t::Union{CruiseTrack, Transect}; start=:south)
+sort(t::Transect; start=cruise_default_start(t)) = Transect(t.tracer, t.cruise, [t for t in t.profiles[sortperm(t; start=start)]])
+sort(ct::CruiseTrack; start=cruise_default_start(ct)) = CruiseTrack(name=ct.name, stations=ct.stations[sortperm(ct; start=start)])
+function sortperm(t::Union{CruiseTrack, Transect}; start=cruise_default_start(t))
     t = autoshift(t)
     n = length(t)
     lats = latitudes(t)
@@ -199,6 +199,15 @@ function sortperm(t::Union{CruiseTrack, Transect}; start=:south)
     return path
 end
 export sort, sortperm, getindex
+
+function cruise_default_start(t)
+    t = autoshift(t)
+    extremalat = extrema(latitudes(t))
+    extremalon = extrema(longitudes(t))
+    Δlat = extremalat[2] - extremalat[1]
+    Δlon = extremalon[2] - extremalon[1]
+    Δlon > Δlat ? :west : :south
+end
 
 """
     diff(t)
