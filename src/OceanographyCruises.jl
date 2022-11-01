@@ -6,7 +6,7 @@ using PrettyTables
 using Unitful
 using Unitful: °
 using Distances, TravelingSalesmanHeuristics
-using RecipesBase, UnitfulRecipes
+using RecipesBase
 
 """
     Station
@@ -244,6 +244,8 @@ export latitudes, longitudes
 Unitful.unit(t::Transect) = unit(t.profiles[1].values[1])
 
 # nested functions
+# TODO: Fix this so that one can use the dataframes approach
+# Note: maximum(transect/profile) is not obviously supposed to be the tracer's max
 for f in (:maximum, :minimum)
     @eval begin
         import Base: $f
@@ -254,7 +256,7 @@ for f in (:maximum, :minimum)
         """
         $f(ts::Transects) = $f($f(t) for t in ts.transects)
         $f(t::Transect) = $f($f(pro) for pro in t.profiles)
-        $f(pro::DepthProfile) = $f($f(v) for v in pro.values)
+        $f(pro::DepthProfile) = $f(pro.values)
         export $f
     end
 end
