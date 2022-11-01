@@ -54,7 +54,7 @@ function Base.show(io::IO, ::MIME"text/plain", ct::CruiseTrack)
         println("Empty cruise $(ct.name)")
     else
         println("Cruise $(ct.name)")
-        pretty_table(pretty_data(ct), ["Station", "Date", "Lat", "Lon"])
+        pretty_table(pretty_data(ct); header=[:Station, :Date, :Lat, :Lon])
     end
 end
 latitudes(ct::CruiseTrack) = [st.lat for st in ct.stations]
@@ -90,7 +90,7 @@ function Base.show(io::IO, m::MIME"text/plain", p::DepthProfile)
         println("Empty profile at ", string(p.station))
     else
         println("Depth profile at ", string(p.station))
-        pretty_table(pretty_data(p), ["Depth", "Value"])
+        pretty_table(pretty_data(p); header=[:Depth, :Value])
     end
 end
 function Base.show(io::IO, m::MIME"text/plain", p::DepthProfile{V}) where {V <: Quantity}
@@ -98,7 +98,7 @@ function Base.show(io::IO, m::MIME"text/plain", p::DepthProfile{V}) where {V <: 
         println("Empty profile at ", string(p.station))
     else
         println("Depth profile at ", string(p.station))
-        pretty_table(pretty_data(p), ["Depth", "Value [$(unit(V))]"])
+        pretty_table(pretty_data(p); header=[:Depth, Symbol("Value [$(unit(V))]")])
     end
 end
 Base.:*(pro::DepthProfile, q::Quantity) = DepthProfile(pro.station, pro.depths, pro.values .* q)
